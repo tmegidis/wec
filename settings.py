@@ -1,10 +1,20 @@
 # settings.py
 
 import pygame
+pygame.init()
+
+# Full-screen toggle
+FULLSCREEN = True  # Set to False for windowed mode, True for full-screen mode
 
 # Screen settings
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+if FULLSCREEN:
+    SCREEN_WIDTH = pygame.display.Info().current_w
+    SCREEN_HEIGHT = pygame.display.Info().current_h
+    SCREEN_MODE = pygame.FULLSCREEN
+else:
+    SCREEN_WIDTH = 800
+    SCREEN_HEIGHT = 600
+    SCREEN_MODE = 0  # Windowed mode
 
 # Colors
 WHITE = (255, 255, 255)

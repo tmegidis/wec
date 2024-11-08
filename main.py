@@ -3,7 +3,7 @@
 import pygame
 import sys
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, clock
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, clock, SCREEN_MODE
 from player import Player
 from asteroid import Asteroid
 from projectile import Projectile
@@ -12,13 +12,14 @@ from enemy import EnemyManager
 
 # Initialize Pygame
 pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
 pygame.display.set_caption("Enhanced Spaceship Game")
 
-# Load background image
-background_img = pygame.image.load("background.png").convert()
-background_y1 = 0  # Position of the first background
-background_y2 = -SCREEN_HEIGHT  # Position of the second background
+# Load and scale background image
+background_img = pygame.image.load("assets/background.png").convert()
+background_img = pygame.transform.scale(background_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+background_y1 = 0
+background_y2 = -SCREEN_HEIGHT
 
 # Font for UI elements
 font = pygame.font.Font(None, 36)

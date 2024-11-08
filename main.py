@@ -12,24 +12,29 @@ from collision import detect_collisions
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Enhanced Spaceship Game")
-font = pygame.font.Font(None, 36)  # Font for ammo display
 
-def draw_health_bar(screen, player):
-    # Health bar dimensions
-    bar_width = 200  # Max width of the health bar
-    bar_height = 20
-    bar_x = 10
-    bar_y = 10
+# Load background image
+background_img = pygame.image.load("background.png").convert()
+background_y1 = 0  # Position of the first background
+background_y2 = -SCREEN_HEIGHT  # Position of the second background
 
-    # Calculate health ratio
-    health_ratio = player.health / player.max_health
-    current_bar_width = bar_width * health_ratio
+def draw_rolling_background(screen, dt):
+    global background_y1, background_y2
+    scroll_speed = 100  # Pixels per second
 
-    # Draw background bar (grey)
-    pygame.draw.rect(screen, (169, 169, 169), (bar_x, bar_y, bar_width, bar_height))
+    # Move background positions down
+    background_y1 += scroll_speed * dt
+    background_y2 += scroll_speed * dt
 
-    # Draw current health (red)
-    pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, current_bar_width, bar_height))
+    # Reset positions when they move off-screen
+    if background_y1 >= SCREEN_HEIGHT:
+        background_y1 = -SCREEN_HEIGHT
+    if background_y2 >= SCREEN_HEIGHT:
+        background_y2 = -SCREEN_HEIGHT
+
+    # Draw the two images on screen
+    screen.blit(background_img, (0, background_y1))
+    screen.blit(background_img, (0, background_y2))
 
 def game_loop():
     player = Player()
@@ -74,18 +79,16 @@ def game_loop():
 
         # Draw everything
         screen.fill(BLACK)
+        draw_rolling_background(screen, dt)  # Draw rolling background
         player.draw(screen)
         for proj in projectiles:
             proj.draw(screen)
         for ast in asteroids:
             ast.draw(screen)
 
-        # Draw health bar
-        draw_health_bar(screen, player)
-
         # Display ammo count
-        ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
-        screen.blit(ammo_text, (10, 40))  # Positioned below the health bar
+        ammo_text = pygame.font.Font(None, 36).render(f"Ammo: {player.ammo}", True, (255, 255, 255))
+        screen.blit(ammo_text, (10, 40))
 
         # Update the display
         pygame.display.flip()

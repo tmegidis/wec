@@ -113,7 +113,7 @@ def game_loop():
         enemy_manager.update(dt)
 
         # Collision detection
-        detect_collisions(player, asteroids, projectiles)
+        detect_collisions(player, asteroids, projectiles, enemy_manager)
 
         # Draw everything in the correct order
         screen.fill(BLACK)

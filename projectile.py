@@ -17,3 +17,6 @@ class Projectile:
     def draw(self, screen):
         # Draw the projectile as a small circle on the screen
         pygame.draw.circle(screen, WHITE, (int(self.position.x), int(self.position.y)), PROJECTILE_SIZE)
+
+    def get_position(self):
+        return self.position

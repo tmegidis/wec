@@ -3,15 +3,17 @@ import random
 from settings import ASTEROID_SIZE, ASTEROID_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
 from pymunk import Vec2d
 
+
 class Asteroid:
-    def __init__(self, scale_factor=3):
+    def __init__(self, scale_factor=3, animation_speed=0.2):
         # Initialize the asteroid's position and velocity
         self.position = Vec2d(random.randint(0, SCREEN_WIDTH - ASTEROID_SIZE), 0)
-        self.velocity = Vec2d(random.uniform(-ASTEROID_SPEED, ASTEROID_SPEED), random.uniform(ASTEROID_SPEED / 2, ASTEROID_SPEED))
+        self.velocity = Vec2d(random.uniform(-ASTEROID_SPEED, ASTEROID_SPEED),
+                              random.uniform(ASTEROID_SPEED / 2, ASTEROID_SPEED))
 
         # Load and scale the asteroid frames
         self.frames = []
-        for i in range(1, 15):  # Assuming you have asteroid1.png to asteroid10.png
+        for i in range(1, 15):  # Assuming you have asteroid1.png to asteroid14.png
             filename = f"assets/asteroids/asteroid{i}.png"
             image = pygame.image.load(filename)
             new_width = int(ASTEROID_SIZE * scale_factor)
@@ -21,8 +23,11 @@ class Asteroid:
 
         # Animation parameters
         self.current_frame = 0
-        self.animation_speed = 0.2  # Adjust for faster or slower animation
+        self.animation_speed = animation_speed  # Adjust for faster or slower animation
         self.frame_timer = 0
+
+        # Define the hitbox radius based on the scaled asteroid size
+        self.hitbox_radius = int((ASTEROID_SIZE * scale_factor) / 2)
 
     def update(self, dt):
         # Update asteroid position based on its velocity and delta time

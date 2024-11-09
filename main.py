@@ -206,7 +206,7 @@ def game_loop():
             ammo_manager.spawn_ammo()
 
         if ammo_manager.update(dt, player.shape):  # Check for collision with player
-            player.ammo += 5  # Increase player ammo count on pickup (adjust amount as needed)
+            player.ammo += 1  # Increase player ammo count on pickup (adjust amount as needed)
 
         # Collision detection
         detect_collisions(player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox)

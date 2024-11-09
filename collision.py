@@ -1,9 +1,12 @@
 # collision.py
 
 import pygame
+
+from explosion import Explosion
 from settings import PLAYER_SIZE, ASTEROID_SIZE, PROJECTILE_SIZE
 
-def detect_collisions(player, asteroids, projectiles, enemies):
+
+def detect_collisions(player, asteroids, projectiles, enemies, explosions):
     # Convert player position to a rectangle for collision detection
     player_rect = pygame.Rect(player.position.x, player.position.y, PLAYER_SIZE, PLAYER_SIZE)
 
@@ -14,7 +17,11 @@ def detect_collisions(player, asteroids, projectiles, enemies):
         if player_rect.colliderect(asteroid_rect):
             player.health -= 10  # Decrease player health
             asteroids.remove(asteroid)  # Remove the asteroid upon collision
+            # Create an explosion at the asteroid's position
+            explosion = Explosion(asteroid.position.x, asteroid.position.y)
+            explosions.append(explosion)
             print(f"Player hit by asteroid! Health: {player.health}")
+
 
     # Check for collisions between player projectiles and asteroids (using circular hitbox)
     for asteroid in asteroids[:]:
@@ -25,6 +32,8 @@ def detect_collisions(player, asteroids, projectiles, enemies):
                 projectiles.remove(projectile)  # Remove projectile on collision
                 if asteroid in asteroids:
                     asteroids.remove(asteroid)  # Remove asteroid if hit
+                    explosion = Explosion(asteroid.position.x, asteroid.position.y)
+                    explosions.append(explosion)
                 print("Asteroid destroyed!")
                 break  # Exit inner loop to avoid checking removed asteroid
 

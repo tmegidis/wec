@@ -34,11 +34,27 @@ class Player:
         self.thruster_sprite = pygame.image.load("assets/spaceship_boost.png").convert_alpha()
         self.thruster_sprite = pygame.transform.scale(self.thruster_sprite, (PLAYER_SIZE, PLAYER_SIZE))
 
+        # Load damage sprites for health flashing, resizing them to PLAYER_SIZE
+        self.damage_sprites = [
+            pygame.transform.scale(
+                pygame.image.load(f"assets/spaceship_damage/damage{i}.png").convert_alpha(),
+                (PLAYER_SIZE, PLAYER_SIZE)
+            ) for i in range(1, 5)
+        ]
+
         # Flag to track if the player is shooting and animating
         self.is_shooting = False
 
         # Flag to track if the player is moving
         self.is_moving = False
+
+        # Flash-related properties
+        self.flashing = False
+        self.flash_count = 0
+        self.flash_timer = 0
+        self.flash_interval = 0.25  # Flash every 0.25 seconds
+        self.last_health_threshold = self.max_health
+        self.damage_stage = 0  # Track which damage sprite to show next
 
     def move(self, keys, dt):
         # Movement logic
@@ -66,7 +82,7 @@ class Player:
         # Change to thruster sprite if moving
         if self.is_moving and not self.is_shooting:
             self.current_sprite = self.thruster_sprite
-        elif not self.is_moving and not self.is_shooting:
+        elif not self.is_moving and not self.is_shooting and not self.flashing:
             self.current_sprite = self.default_sprite
 
     def draw(self, screen):
@@ -104,3 +120,35 @@ class Player:
                     self.current_sprite = self.default_sprite
                     self.is_shooting = False
                     self.current_sprite_index = 0
+
+    def update_damage_sprite(self, dt):
+        """Check if health has dropped by 20 points and flash damage sprites."""
+        current_health = self.health
+
+        # Trigger flashing if health is at the next damage stage
+        if self.health <= 80 - 20 * self.damage_stage:
+            self.flashing = True
+            self.flash_count = 0
+            self.damage_stage += 1  # Move to the next damage stage
+
+        # Handle flashing logic
+        if self.flashing:
+            self.flash_timer += dt
+
+            # Flash every 0.25 second
+            if self.flash_timer > self.flash_interval:
+                if self.flash_count < 6:  # Flash 3 times, so 6 updates (on/off cycles)
+                    if self.flash_count % 2 == 0:
+                        # Show the current damage sprite
+                        self.current_sprite = self.damage_sprites[self.damage_stage - 1]
+                    else:
+                        # Hide the sprite (show default)
+                        self.current_sprite = self.default_sprite
+
+                    self.flash_count += 1
+                else:
+                    # Reset sprite after flashing
+                    self.current_sprite = self.default_sprite
+                    self.flashing = False  # Stop flashing after 3 flashes
+
+                self.flash_timer = 0  # Reset timer

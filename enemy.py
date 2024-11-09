@@ -21,7 +21,7 @@ turn = [pygame.image.load("assets/basic_enemy_sprites/Turn_1.png"),
 
 
 class Enemy:
-    def __init__(self, x, y, speed=100, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
+    def __init__(self, x, y, speed=20, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
         self.position = Vec2d(x, y)
         self.speed = speed
         self.health = health
@@ -79,7 +79,6 @@ class Enemy:
         current_frame = self.animations[self.current_animation][self.frame_index]
         screen.blit(current_frame, (self.position.x, self.position.y))
 
-        # Draw projectiles
         for proj in self.projectiles:
             proj.draw(screen)
 
@@ -93,16 +92,20 @@ class Enemy:
             EnemyProjectile(projectile_x, projectile_y, Vec2d(0, 200)))
 
 class EnemyProjectile:
-    def __init__(self, x, y, velocity=Vec2d(0, 200), size=10):
+    def __init__(self, x, y, velocity=Vec2d(0, 200), size=40):
         self.position = Vec2d(x, y)
         self.velocity = velocity
         self.size = size
+        self.image = pygame.image.load("assets/Charge_2.png")
+        self.image = pygame.transform.scale(self.image, (self.size, self.size))
+        self.image = pygame.transform.rotate(self.image, 90)
+
 
     def update(self, dt):
         self.position += self.velocity * dt
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255, 255, 255), (int(self.position.x), int(self.position.y)), self.size // 2)
+        screen.blit(self.image, (int(self.position.x), int(self.position.y)))
 
 
 class EnemyManager:

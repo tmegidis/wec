@@ -9,7 +9,8 @@ from asteroid import Asteroid
 from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
-
+from waves import Waves
+from ammo import AmmoManager
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
@@ -136,14 +137,19 @@ def draw_rolling_background(screen, dt):
 def game_loop():
     player = Player()
     asteroid_spawn_timer = 0
-    enemy_spawn_timer = 0  # Initialize enemy spawn timer
+    enemy_spawn_timer = 0
     projectiles = []
     asteroids = []
-    enemy_manager = EnemyManager()  # Initialize the EnemyManager
-
+    enemy_manager = EnemyManager()
+    waves = Waves(enemy_manager, asteroids)
+    ammo_manager = AmmoManager()  # Initialize the AmmoManager
     first_spawn = True
-
     explosions = []
+    enemy_hitbox = []
+
+    # Start the first wave
+    current_wave_index = 0
+    waves.start_wave(current_wave_index)
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -154,8 +160,9 @@ def game_loop():
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and player.ammo > 0:
                     player.shoot(projectiles)
+                    player.ammo -= 1  # Decrease ammo count when shooting
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
@@ -176,25 +183,31 @@ def game_loop():
         # Update player shooting animation
         player.update_shooting_sprite()
 
-        # Update player damage sprite (flashing if necessary)
-        player.update_damage_sprite(dt)
-
         # Update projectiles
         for proj in projectiles[:]:
             proj.update(dt)
             if proj.position.y < 0:  # Remove if out of screen
                 projectiles.remove(proj)
 
-        # Spawn and update asteroids
-        asteroid_spawn_timer += dt
-        if asteroid_spawn_timer > 1:  # Spawn asteroid every second
-            asteroids.append(Asteroid())
-            asteroid_spawn_timer = 0
+        # Update current wave
+        waves.update(dt)
+
+        # Check if the wave is complete and start the next wave if necessary
+        if not waves.is_wave_active():
+            current_wave_index += 1
+            if current_wave_index < len(waves.wave_data):
+                waves.start_wave(current_wave_index)
+            else:
+                print("All waves complete!")
+                break
+
+        # Update asteroids
         for ast in asteroids[:]:
             ast.update(dt)
-            if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
+            if ast.position.y > SCREEN_HEIGHT:
                 asteroids.remove(ast)
 
+        # Update enemies
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
 
@@ -214,8 +227,15 @@ def game_loop():
         # Update and draw enemies
         enemy_manager.update(dt)
 
+        # Update and draw ammo, checking for player collisions
+        if random.random() < 0.01:  # Adjust probability for ammo spawn rate
+            ammo_manager.spawn_ammo()
+
+        if ammo_manager.update(dt, player.shape):  # Check for collision with player
+            player.ammo += 1  # Increase player ammo count on pickup (adjust amount as needed)
+
         # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions)
+        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox)
 
         for explosion in explosions[:]:
             explosion.update(dt)
@@ -234,20 +254,21 @@ def game_loop():
 
         # Draw everything in the correct order
         screen.fill(BLACK)
-        draw_rolling_background(screen, dt)  # Draw rolling background
-        draw_health_bar(screen, player)  # Draw health bar on top of background
-        player.draw(screen)  # Draw player on top
+        draw_rolling_background(screen, dt)
+        draw_health_bar(screen, player)
+        player.draw(screen)
         for proj in projectiles:
             proj.draw(screen)
         for ast in asteroids:
             ast.draw(screen)
         enemy_manager.draw(screen)
+        ammo_manager.draw(screen)  # Draw ammo drops
         for explosion in explosions:
             explosion.draw(screen)
 
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
-        screen.blit(ammo_text, (10, 40))  # Positioned below the health bar
+        screen.blit(ammo_text, (10, 40))
 
         # Update the display
         pygame.display.flip()

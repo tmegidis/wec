@@ -21,7 +21,7 @@ turn = [pygame.image.load("assets/basic_enemy_sprites/Turn_1.png"),
 
 
 class Enemy:
-    def __init__(self, x, y, speed=100, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
+    def __init__(self, x, y, speed=20, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
         self.position = Vec2d(x, y)
         self.speed = speed
         self.health = health

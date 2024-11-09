@@ -10,6 +10,7 @@ from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
 
+
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
@@ -71,6 +72,11 @@ def game_loop():
     asteroids = []
     enemy_manager = EnemyManager()  # Initialize the EnemyManager
 
+    first_spawn = True
+
+    explosions = []
+
+
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
 
@@ -114,7 +120,16 @@ def game_loop():
 
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
-        if enemy_spawn_timer > 10:  # Every 2 seconds, spawn a random type
+
+
+        if first_spawn:
+            enemy_type = random.choice(["basic", "zigzag", "spread"])
+            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
+            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
+            enemy_spawn_timer = 0
+            first_spawn=False
+
+        if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
             enemy_type = random.choice(["basic", "zigzag", "spread"])
             enemy_x = random.randint(0, SCREEN_WIDTH - 40)
             enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
@@ -124,7 +139,12 @@ def game_loop():
         enemy_manager.update(dt)
 
         # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager)
+        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions)
+
+        for explosion in explosions[:]:
+            explosion.update(dt)
+            if explosion.done:
+                explosions.remove(explosion)
 
         # Draw everything in the correct order
         screen.fill(BLACK)
@@ -136,6 +156,9 @@ def game_loop():
         for ast in asteroids:
             ast.draw(screen)
         enemy_manager.draw(screen)
+        for explosion in explosions:
+            explosion.draw(screen)
+
 
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))

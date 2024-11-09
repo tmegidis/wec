@@ -84,9 +84,13 @@ class Enemy:
             proj.draw(screen)
 
     def shoot(self):
-        self.projectiles.append(
-            EnemyProjectile(self.position.x + self.size // 2, self.position.y + self.size, Vec2d(0, 200)))
+        # Calculate the front middle position of the enemy
+        projectile_x = self.position.x + self.size // 2 + 76
+        projectile_y = self.position.y + self.size  + 80 # Front edge of the enemy
 
+        # Spawn projectile at the front middle position
+        self.projectiles.append(
+            EnemyProjectile(projectile_x, projectile_y, Vec2d(0, 200)))
 
 class EnemyProjectile:
     def __init__(self, x, y, velocity=Vec2d(0, 200), size=10):

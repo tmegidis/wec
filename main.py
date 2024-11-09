@@ -71,7 +71,11 @@ def game_loop():
     projectiles = []
     asteroids = []
     enemy_manager = EnemyManager()  # Initialize the EnemyManager
+
     first_spawn = True
+
+    explosions = []
+
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -132,7 +136,12 @@ def game_loop():
         enemy_manager.update(dt)
 
         # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager)
+        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions)
+
+        for explosion in explosions[:]:
+            explosion.update(dt)
+            if explosion.done:
+                explosions.remove(explosion)
 
         # Draw everything in the correct order
         screen.fill(BLACK)
@@ -144,6 +153,9 @@ def game_loop():
         for ast in asteroids:
             ast.draw(screen)
         enemy_manager.draw(screen)
+        for explosion in explosions:
+            explosion.draw(screen)
+
 
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))

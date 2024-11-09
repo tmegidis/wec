@@ -25,8 +25,76 @@ background_y2 = -SCREEN_HEIGHT
 # Font for UI elements
 font = pygame.font.Font(None, 36)
 
+slide1 = pygame.image.load("assets/intro_slides/intro1.png").convert()
+slide1 = pygame.transform.scale(slide1, (SCREEN_WIDTH, SCREEN_HEIGHT))
+slide2 = pygame.image.load("assets/intro_slides/intro2.png").convert()
+slide2 = pygame.transform.scale(slide2, (SCREEN_WIDTH, SCREEN_HEIGHT))
+slide3 = pygame.image.load("assets/intro_slides/intro3.png").convert()
+slide3 = pygame.transform.scale(slide3, (SCREEN_WIDTH, SCREEN_HEIGHT))
+slide4 = pygame.image.load("assets/intro_slides/intro4.png").convert()
+slide4 = pygame.transform.scale(slide4, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+intro_slides = [
+    slide1,
+    slide2,
+    slide3,
+    slide4
+]
 
+def show_intro():
+    slide_index = 0
+    slide_duration = 30000  # 30 seconds per slide
+    start_time = pygame.time.get_ticks()
+    begin_button_text = "Begin"
+
+    while slide_index < len(intro_slides):
+        current_time = pygame.time.get_ticks()
+        screen.fill(BLACK)
+        screen.blit(intro_slides[slide_index], (0, 0))
+
+        if slide_index == len(intro_slides) - 1:
+            # Check if the mouse is hovering over the button
+            mouse_pos = pygame.mouse.get_pos()
+            is_hovered = False
+
+            # Render "Begin" button with hover effect
+            begin_button = pygame.font.Font(None, 100).render(begin_button_text, True, (255, 215, 0))  # White color
+            button_rect = begin_button.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
+            if button_rect.collidepoint(mouse_pos):
+                begin_button = pygame.font.Font(None, 100).render(begin_button_text, True, (255, 215, 255))  # "Gold" color
+                begin_button = pygame.transform.scale(begin_button, (
+                int(button_rect.width * 1.1), int(button_rect.height * 1.1)))  # Slightly larger
+                is_hovered = True
+            else:
+                # Normal state
+                begin_button = pygame.font.Font(None, 100).render(begin_button_text, True, (255, 215, 0))  # White color
+
+            # Recalculate button rect to center it after scaling
+            button_rect = begin_button.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
+            screen.blit(begin_button, button_rect.topleft)
+
+        # Check for events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # If on the last slide, only start the game if the button is clicked
+                if slide_index == len(intro_slides) - 1:
+                    if button_rect.collidepoint(event.pos):
+                        return  # Start game
+                else:
+                    # Advance to the next slide if it's not the last slide
+                    slide_index += 1
+                    start_time = current_time  # Reset timer for next slide
+
+        # Automatically proceed to the next slide after the duration
+        if current_time - start_time > slide_duration and slide_index < len(intro_slides) - 1:
+            slide_index += 1
+            start_time = current_time
+
+        pygame.display.flip()
+        clock.tick(60)
 def draw_health_bar(screen, player):
     # Health bar dimensions
     bar_width = 200  # Max width of the health bar
@@ -62,6 +130,7 @@ def draw_rolling_background(screen, dt):
     # Draw the two images on screen
     screen.blit(background_img, (0, background_y1))
     screen.blit(background_img, (0, background_y2))
+
 
 
 def game_loop():
@@ -170,4 +239,5 @@ def game_loop():
 
 
 if __name__ == "__main__":
+    show_intro()  # Show intro cutscene first
     game_loop()

@@ -49,7 +49,7 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
     # Check for collisions between player projectiles and enemies
     for enemy in enemies.enemies[:]:
         # Define the enemy hitbox rectangle
-        enemy_rect = pygame.Rect(enemy.position.x + enemy.size/2 + 57, enemy.position.y + enemy.size + 80, enemy.size, enemy.size)
+        enemy_rect = pygame.Rect(enemy.position.x + enemy.size/2 + 57, enemy.position.y + enemy.size + 30, enemy.size, enemy.size)
         enemy_hitbox.append(enemy_rect)
 
         for projectile in projectiles[:]:

@@ -21,7 +21,7 @@ turn = [pygame.image.load("assets/basic_enemy_sprites/Turn_1.png"),
 
 
 class Enemy:
-    def __init__(self, x, y, speed=20, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
+    def __init__(self, x, y, speed=20, health=1, shoot_interval=4, color=(255, 0, 0), pattern="straight"):
         self.position = Vec2d(x, y)
         self.speed = speed
         self.health = health
@@ -32,6 +32,10 @@ class Enemy:
         self.shoot_interval = shoot_interval
         self.color = color
         self.pattern = pattern
+        # Direction and timing for random movement
+        self.direction = Vec2d(0, 1)  # Initial direction is downward
+        self.change_direction_interval = 3  # Change direction every 3 seconds
+        self.direction_timer = 0  # Timer to track direction change
 
         # Animation attributes
         self.animations = {
@@ -70,9 +74,33 @@ class Enemy:
                 self.projectiles.remove(proj)
 
     def move(self, dt):
-        movement = Vec2d(0, self.speed * dt)
-        self.position += movement
+        # Update the direction every few seconds
+        self.direction_timer += dt
+        if self.direction_timer >= self.change_direction_interval:
+            self.change_direction()
+            self.direction_timer = 0  # Reset the timer
+
+        # Define the maximum y-coordinate (three-quarters down the screen)
+        max_y_position = SCREEN_HEIGHT * 0.3 - self.size  # Adjust for enemy size
+
+        # Move in the current direction
+        movement = self.direction * self.speed * dt
+        new_position = self.position + movement
+
+        # Ensure the enemy does not go beyond screen bounds
+        if 0 <= new_position.x <= SCREEN_WIDTH - self.size and 0 <= new_position.y <= max_y_position:
+            self.position = new_position
+        else:
+            # If out of bounds, change direction
+            self.change_direction()
+
+        # Update the enemy's rectangle position
         self.shape.topleft = (self.position.x, self.position.y)
+
+    def change_direction(self):
+        """Randomly change the enemy's direction."""
+        angle = random.uniform(0, 360)  # Random angle in degrees
+        self.direction = Vec2d(1, 0).rotated_degrees(angle)  # Set a new random direction
 
     def draw(self, screen):
         # Draw the current frame of the animation

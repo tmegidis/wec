@@ -156,6 +156,22 @@ def show_game_over():
                 sys.exit()  # Exit the game (or add a restart option if desired)
         clock.tick(500)
 
+def show_game_win():
+    # Display the win Over screen
+    screen.blit(win_img, (0, 0))
+    pygame.display.flip()
+
+    # Wait for player to press a key to exit or restart
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                pygame.quit()
+                sys.exit()  # Exit the game (or add a restart option if desired)
+        clock.tick(500)
+
 
 def game_loop():
     player = Player()
@@ -229,6 +245,7 @@ def game_loop():
                 waves.start_wave(current_wave_index)
             else:
                 print("All waves complete!")
+                show_game_win()
                 break
 
         # Update asteroids

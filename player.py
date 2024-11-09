@@ -30,25 +30,44 @@ class Player:
         self.default_sprite = self.attack_sprites[0]
         self.current_sprite = self.default_sprite
 
+        # Load the thruster sprite (for movement)
+        self.thruster_sprite = pygame.image.load("assets/spaceship_boost.png").convert_alpha()
+        self.thruster_sprite = pygame.transform.scale(self.thruster_sprite, (PLAYER_SIZE, PLAYER_SIZE))
+
         # Flag to track if the player is shooting and animating
         self.is_shooting = False
+
+        # Flag to track if the player is moving
+        self.is_moving = False
 
     def move(self, keys, dt):
         # Movement logic
         move_x = 0
         move_y = 0
+        self.is_moving = False  # Reset the movement flag
+
         if keys[pygame.K_LEFT] and self.position.x > 0:
             move_x = -PLAYER_SPEED
+            self.is_moving = True
         if keys[pygame.K_RIGHT] and self.position.x < SCREEN_WIDTH - PLAYER_SIZE:
             move_x = PLAYER_SPEED
+            self.is_moving = True
         if keys[pygame.K_UP] and self.position.y > 0:
             move_y = -PLAYER_SPEED
+            self.is_moving = True
         if keys[pygame.K_DOWN] and self.position.y < SCREEN_HEIGHT - PLAYER_SIZE:
             move_y = PLAYER_SPEED
+            self.is_moving = True
 
         movement = Vec2d(move_x, move_y) * dt
         self.position += movement
         self.shape.topleft = (self.position.x, self.position.y)
+
+        # Change to thruster sprite if moving
+        if self.is_moving and not self.is_shooting:
+            self.current_sprite = self.thruster_sprite
+        elif not self.is_moving and not self.is_shooting:
+            self.current_sprite = self.default_sprite
 
     def draw(self, screen):
         # Draw current sprite

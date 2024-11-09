@@ -5,6 +5,21 @@ import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from pymunk import Vec2d
 
+# Load enemy sprites
+attack = [pygame.image.load("assets/basic_enemy_sprites/Attack_1.png"),
+          pygame.image.load("assets/basic_enemy_sprites/Attack_2.png")]
+boost = [pygame.image.load("assets/basic_enemy_sprites/Boost.png")]
+charge = [pygame.image.load("assets/basic_enemy_sprites/Charge_1.png"),
+          pygame.image.load("assets/basic_enemy_sprites/Charge_2.png")]
+damage = [pygame.image.load("assets/basic_enemy_sprites/Damage.png")]
+destroyed = [pygame.image.load("assets/basic_enemy_sprites/Destroyed.png")]
+evasion = [pygame.image.load("assets/basic_enemy_sprites/Evasion.png")]
+idle = [pygame.image.load("assets/basic_enemy_sprites/Idle.png")]
+move = [pygame.image.load("assets/basic_enemy_sprites/Move.png")]
+turn = [pygame.image.load("assets/basic_enemy_sprites/Turn_1.png"),
+        pygame.image.load("assets/basic_enemy_sprites/Turn_2.png")]
+
+
 class Enemy:
     def __init__(self, x, y, speed=100, health=1, shoot_interval=1.5, color=(255, 0, 0), pattern="straight"):
         self.position = Vec2d(x, y)
@@ -18,12 +33,36 @@ class Enemy:
         self.color = color
         self.pattern = pattern
 
+        # Animation attributes
+        self.animations = {
+            "attack": attack,
+            "boost": boost,
+            "charge": charge,
+            "damage": damage,
+            "destroyed": destroyed,
+            "evasion": evasion,
+            "idle": idle,
+            "move": move,
+            "turn": turn
+        }
+
+        self.current_animation = "idle"  # Default animation state
+        self.frame_index = 0
+        self.frame_timer = 0
+        self.frame_duration = 0.1  # Time per frame in seconds
+
     def update(self, dt):
         self.move(dt)
         self.shoot_timer += dt
         if self.shoot_timer >= self.shoot_interval:
             self.shoot()
             self.shoot_timer = 0
+
+        # Update frame for animation
+        self.frame_timer += dt
+        if self.frame_timer >= self.frame_duration:
+            self.frame_index = (self.frame_index + 1) % len(self.animations[self.current_animation])
+            self.frame_timer = 0
 
         for proj in self.projectiles[:]:
             proj.update(dt)
@@ -36,12 +75,17 @@ class Enemy:
         self.shape.topleft = (self.position.x, self.position.y)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.shape)
+        # Draw the current frame of the animation
+        current_frame = self.animations[self.current_animation][self.frame_index]
+        screen.blit(current_frame, (self.position.x, self.position.y))
+
+        # Draw projectiles
         for proj in self.projectiles:
             proj.draw(screen)
 
     def shoot(self):
-        self.projectiles.append(EnemyProjectile(self.position.x + self.size // 2, self.position.y + self.size, Vec2d(0, 200)))
+        self.projectiles.append(
+            EnemyProjectile(self.position.x + self.size // 2, self.position.y + self.size, Vec2d(0, 200)))
 
 
 class EnemyProjectile:

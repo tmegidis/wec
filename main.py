@@ -24,6 +24,8 @@ background_y2 = -SCREEN_HEIGHT
 # Font for UI elements
 font = pygame.font.Font(None, 36)
 
+
+
 def draw_health_bar(screen, player):
     # Health bar dimensions
     bar_width = 200  # Max width of the health bar
@@ -64,10 +66,10 @@ def draw_rolling_background(screen, dt):
 def game_loop():
     player = Player()
     asteroid_spawn_timer = 0
-    enemy_spawn_timer = 0
+    enemy_spawn_timer = 0  # Initialize enemy spawn timer
     projectiles = []
     asteroids = []
-    enemy_manager = EnemyManager()
+    enemy_manager = EnemyManager()  # Initialize the EnemyManager
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -80,6 +82,9 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     player.shoot(projectiles)
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
         # Player movement
         keys = pygame.key.get_pressed()

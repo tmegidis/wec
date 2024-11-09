@@ -75,6 +75,7 @@ def game_loop():
     first_spawn = True
 
     explosions = []
+    hitboxes = []
 
 
     while True:
@@ -155,7 +156,6 @@ def game_loop():
         enemy_manager.draw(screen)
         for explosion in explosions:
             explosion.draw(screen)
-
 
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))

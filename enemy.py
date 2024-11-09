@@ -79,7 +79,6 @@ class Enemy:
         current_frame = self.animations[self.current_animation][self.frame_index]
         screen.blit(current_frame, (self.position.x, self.position.y))
 
-        # Draw projectiles
         for proj in self.projectiles:
             proj.draw(screen)
 

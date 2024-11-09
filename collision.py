@@ -48,12 +48,17 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions):
 
     # Check for collisions between player projectiles and enemies
     for enemy in enemies.enemies[:]:
+        # Define the enemy hitbox rectangle
         enemy_rect = pygame.Rect(enemy.position.x, enemy.position.y, enemy.size, enemy.size)
+
+
         for projectile in projectiles[:]:
             projectile_rect = pygame.Rect(projectile.position.x, projectile.position.y, 5, 5)
             if enemy_rect.colliderect(projectile_rect):
                 enemy.health -= 1  # Decrease enemy health
                 projectiles.remove(projectile)  # Remove projectile on collision
+                explosion = Explosion(enemy.position.x, enemy.position.y)
+                explosions.append(explosion)
                 print("Enemy hit by projectile!")
                 if enemy.health <= 0:
                     enemies.enemies.remove(enemy)  # Remove enemy if health is depleted

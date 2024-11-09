@@ -149,14 +149,13 @@ class Player:
                 right_projectile = Projectile(right_projectile_x, projectile_y)
                 projectiles.append(right_projectile)
 
-                self.ammo -= 1  # Decrease ammo by 2 since two projectiles are fired
             else:
                 # Default behavior: fire a single projectile
                 center_projectile_x = self.position.x + (self.shape.width // 2) - PROJECTILE_SIZE // 2
                 center_projectile = Projectile(center_projectile_x, projectile_y)
                 projectiles.append(center_projectile)
 
-                self.ammo -= 1  # Decrease ammo by 1 since one projectile is fired
+            self.ammo -= 1  # Decrease ammo by 1 since one projectile is fired
 
             # Start the shooting animation
             self.is_shooting = True

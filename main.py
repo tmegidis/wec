@@ -165,7 +165,6 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.ammo > 0:
                     player.shoot(projectiles)
-                    player.ammo -= 1  # Decrease ammo count when shooting
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()

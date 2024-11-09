@@ -295,11 +295,30 @@ def game_loop():
 
         # If between waves, display a message to prompt the player to click
         if waves.is_between_waves():
-            font_large = pygame.font.Font(None, 72)
-            message = "Wave Complete! Click to Start Next Wave! Astroid approaching"
-            text = font_large.render(message, True, (255, 215, 0))
-            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            screen.blit(text, text_rect)
+            font_large = pygame.font.Font(None, 60)
+
+            if waves.current_wave == 0:
+                line1 = "Wave Complete! Click to Start Next Wave!"
+                line2 = "Asteroids approaching."
+            elif waves.current_wave == 1:
+                line1 = "Wave Complete! Our engineers installed a double gun."
+                line2 = "Press 'G' to equip."
+            elif waves.current_wave == 2:
+                line1 = "Wave Complete! Final round"
+                line2 = "Toughest enemies approach"
+            elif waves.current_wave > 2:
+                line1="VICTORY!!!"
+                line2=""
+
+            # Render the first line
+            text1 = font_large.render(line1, True, (255, 215, 0))
+            text_rect1 = text1.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
+            screen.blit(text1, text_rect1)
+
+            # Render the second line slightly below the first
+            text2 = font_large.render(line2, True, (255, 215, 0))
+            text_rect2 = text2.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+            screen.blit(text2, text_rect2)
 
         # Update the display
         pygame.display.flip()

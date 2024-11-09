@@ -9,7 +9,7 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
     destroyed_asteroids = []
     destroyed_enemies = []
 
-    # Check for collisions between player and asteroids
+    # check for collisions between player and asteroids
     for asteroid in asteroids[:]:
         asteroid_rect = pygame.Rect(asteroid.position.x, asteroid.position.y, ASTEROID_SIZE, ASTEROID_SIZE)
         if player_rect.colliderect(asteroid_rect):
@@ -20,7 +20,7 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
                 explosions.append(explosion)
                 print(f"Player hit by asteroid! Health: {player.health}")
 
-    # Check for collisions between player projectiles and asteroids
+    # check for collisions between player projectiles and asteroids
     for asteroid in asteroids[:]:
         for projectile in projectiles[:]:
             distance = asteroid.position.get_distance(projectile.position)
@@ -37,7 +37,7 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
                     pass  # Ignore if already removed
                 break
 
-    # Check for collisions between player and enemy projectiles
+    # check for collisions between player and enemy projectiles
     for enemy in enemies.enemies[:]:
         for enemy_proj in enemy.projectiles[:]:
             enemy_proj_rect = pygame.Rect(enemy_proj.position.x, enemy_proj.position.y, enemy_proj.size,
@@ -50,10 +50,10 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
                 except ValueError:
                     pass
 
-    # Check for collisions between player projectiles and enemies
+    # check for collisions between player projectiles and enemies
     for enemy in enemies.enemies[:]:
 
-        # Define the enemy hitbox rectangle
+        # define the enemy hitbox rectangle
         enemy_rect = pygame.Rect(enemy.position.x + enemy.size/2 + 57, enemy.position.y + enemy.size + 30, enemy.size, enemy.size)
 
         enemy_rect = pygame.Rect(enemy.position.x + enemy.size / 2 + 57, enemy.position.y + enemy.size + 80, enemy.size,
@@ -81,5 +81,5 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy
                     except ValueError:
                         pass
                 break
-
+# return values for scoring purposes
     return destroyed_asteroids, destroyed_enemies

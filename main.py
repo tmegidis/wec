@@ -10,6 +10,7 @@ from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
 
+
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
@@ -70,6 +71,7 @@ def game_loop():
     projectiles = []
     asteroids = []
     enemy_manager = EnemyManager()  # Initialize the EnemyManager
+    first_spawn = True
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -111,7 +113,16 @@ def game_loop():
 
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
-        if enemy_spawn_timer > 10:  # Every 2 seconds, spawn a random type
+
+
+        if first_spawn:
+            enemy_type = random.choice(["basic", "zigzag", "spread"])
+            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
+            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
+            enemy_spawn_timer = 0
+            first_spawn=False
+
+        if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
             enemy_type = random.choice(["basic", "zigzag", "spread"])
             enemy_x = random.randint(0, SCREEN_WIDTH - 40)
             enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)

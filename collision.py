@@ -6,7 +6,7 @@ from explosion import Explosion
 from settings import PLAYER_SIZE, ASTEROID_SIZE, PROJECTILE_SIZE
 
 
-def detect_collisions(player, asteroids, projectiles, enemies, explosions):
+def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy_hitbox):
     # Convert player position to a rectangle for collision detection
     player_rect = pygame.Rect(player.position.x, player.position.y, PLAYER_SIZE, PLAYER_SIZE)
 
@@ -49,8 +49,8 @@ def detect_collisions(player, asteroids, projectiles, enemies, explosions):
     # Check for collisions between player projectiles and enemies
     for enemy in enemies.enemies[:]:
         # Define the enemy hitbox rectangle
-        enemy_rect = pygame.Rect(enemy.position.x, enemy.position.y, enemy.size, enemy.size)
-
+        enemy_rect = pygame.Rect(enemy.position.x + enemy.size/2 + 57, enemy.position.y + enemy.size + 80, enemy.size, enemy.size)
+        enemy_hitbox.append(enemy_rect)
 
         for projectile in projectiles[:]:
             projectile_rect = pygame.Rect(projectile.position.x, projectile.position.y, 5, 5)

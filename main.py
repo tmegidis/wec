@@ -144,7 +144,7 @@ def game_loop():
     first_spawn = True
 
     explosions = []
-    hitboxes = []
+    enemy_hitbox = []
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -177,15 +177,15 @@ def game_loop():
             if proj.position.y < 0:  # Remove if out of screen
                 projectiles.remove(proj)
 
-        # Spawn and update asteroids
-        asteroid_spawn_timer += dt
-        if asteroid_spawn_timer > 1:  # Spawn asteroid every second
-            asteroids.append(Asteroid())
-            asteroid_spawn_timer = 0
-        for ast in asteroids[:]:
-            ast.update(dt)
-            if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
-                asteroids.remove(ast)
+        # # Spawn and update asteroids
+        # asteroid_spawn_timer += dt
+        # if asteroid_spawn_timer > 1:  # Spawn asteroid every second
+        #     asteroids.append(Asteroid())
+        #     asteroid_spawn_timer = 0
+        # for ast in asteroids[:]:
+        #     ast.update(dt)
+        #     if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
+        #         asteroids.remove(ast)
 
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
@@ -197,17 +197,17 @@ def game_loop():
             enemy_spawn_timer = 0
             first_spawn = False
 
-        if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
-            enemy_type = random.choice(["basic", "zigzag", "spread"])
-            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
-            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
-            enemy_spawn_timer = 0
+        # if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
+        #     enemy_type = random.choice(["basic", "zigzag", "spread"])
+        #     enemy_x = random.randint(0, SCREEN_WIDTH - 40)
+        #     enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
+        #     enemy_spawn_timer = 0
 
         # Update and draw enemies
         enemy_manager.update(dt)
 
         # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions)
+        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox)
 
         for explosion in explosions[:]:
             explosion.update(dt)
@@ -226,6 +226,9 @@ def game_loop():
         enemy_manager.draw(screen)
         for explosion in explosions:
             explosion.draw(screen)
+
+        # for enemy_rect in enemy_hitbox:
+        #     pygame.draw.rect(screen, (255, 255, 255), enemy_rect, 2)
 
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))

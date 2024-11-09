@@ -92,16 +92,20 @@ class Enemy:
             EnemyProjectile(projectile_x, projectile_y, Vec2d(0, 200)))
 
 class EnemyProjectile:
-    def __init__(self, x, y, velocity=Vec2d(0, 200), size=10):
+    def __init__(self, x, y, velocity=Vec2d(0, 200), size=40):
         self.position = Vec2d(x, y)
         self.velocity = velocity
         self.size = size
+        self.image = pygame.image.load("assets/Charge_2.png")
+        self.image = pygame.transform.scale(self.image, (self.size, self.size))
+        self.image = pygame.transform.rotate(self.image, 90)
+
 
     def update(self, dt):
         self.position += self.velocity * dt
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255, 255, 255), (int(self.position.x), int(self.position.y)), self.size // 2)
+        screen.blit(self.image, (int(self.position.x), int(self.position.y)))
 
 
 class EnemyManager:

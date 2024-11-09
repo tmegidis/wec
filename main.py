@@ -90,6 +90,9 @@ def game_loop():
         keys = pygame.key.get_pressed()
         player.move(keys, dt)
 
+        # Update player shooting animation
+        player.update_shooting_sprite()
+
         # Update projectiles
         for proj in projectiles[:]:
             proj.update(dt)

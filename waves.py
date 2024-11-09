@@ -9,8 +9,9 @@ class Waves:
         self.asteroids = asteroids
         self.current_wave = 0
         self.wave_active = False
+        self.between_waves = False  # New attribute to track if we are between waves
         self.wave_data = [
-            {"enemies": 5, "asteroids": 0, "enemy_type": "basic"},
+            {"enemies": 1, "asteroids": 0, "enemy_type": "basic"},
             {"enemies": 8, "asteroids": 4, "enemy_type": "zigzag"},
             {"enemies": 10, "asteroids": 5, "enemy_type": "spread"},
             # Add more waves with different configurations as needed
@@ -24,6 +25,7 @@ class Waves:
         """Initialize a specific wave."""
         self.current_wave = wave_index
         self.wave_active = True
+        self.between_waves = False  # Reset between_waves flag when a wave starts
         self.wave_data[self.current_wave]["enemies_left_to_spawn"] = self.wave_data[self.current_wave]["enemies"]
         self.wave_data[self.current_wave]["asteroids_left_to_spawn"] = self.wave_data[self.current_wave]["asteroids"]
         self.spawn_timer = 0  # Reset spawn timer for the new wave
@@ -55,8 +57,13 @@ class Waves:
             # Check if all spawned enemies and asteroids have been cleared
             if len(self.enemy_manager.enemies) == 0 and len(self.asteroids) == 0:
                 self.wave_active = False  # Mark the wave as completed
+                self.between_waves = True  # Enter between-waves state
                 print(f"Wave {self.current_wave + 1} complete!")
 
     def is_wave_active(self):
         """Check if the current wave is still active."""
         return self.wave_active
+
+    def is_between_waves(self):
+        """Check if the game is between waves."""
+        return self.between_waves

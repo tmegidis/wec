@@ -182,11 +182,7 @@ def game_loop():
     enemy_manager = EnemyManager()
     waves = Waves(enemy_manager, asteroids)
     ammo_manager = AmmoManager()
-    first_spawn = True
     explosions = []
-    enemy_hitbox = []
-
-    # Initialize score
     score = 0
 
     # Start the first wave
@@ -196,10 +192,10 @@ def game_loop():
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
 
+        # Handle player death
         if player.health <= 0:
             show_game_over()
             break  # Exit the game loop to end the game after showing Game Over
-
 
         # Handle events
         for event in pygame.event.get():
@@ -212,97 +208,80 @@ def game_loop():
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                elif event.key == pygame.K_r:  # Activate shooting speed boost (R key functionality)
+                elif event.key == pygame.K_r:
                     player.shooting_speed_factor = 0.5  # Temporarily double the shooting speed
-                    player.no_ammo_reduction_time = player.no_ammo_reduction_duration  # Disable ammo reduction for 3 seconds
+                    player.no_ammo_reduction_time = player.no_ammo_reduction_duration
                     print('Shooting Speed Boost Activated')
-                elif event.key == pygame.K_g:  # Activate double gun mode (G key functionality)
-                    if not player.double_gun_mode:  # Activate double gun mode only if it's not already active
+                elif event.key == pygame.K_g:
+                    if not player.double_gun_mode:
                         player.double_gun_mode = True
                         player.double_gun_timer = 3  # Set timer for 3 seconds
                         print('Double Gun Mode Activated')
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # If between waves, start the next wave on click
+                if waves.is_between_waves():
+                    current_wave_index += 1
+                    if current_wave_index < len(waves.wave_data):
+                        waves.start_wave(current_wave_index)
+                        waves.between_waves = False  # Clear between waves flag
+                    else:
+                        print("All waves complete!")
+                        show_game_win()
+                        return  # Exit game loop to end the game
 
-        # Player movement
-        keys = pygame.key.get_pressed()
-        player.move(keys, dt)
+        # Only update entities if a wave is active
+        if waves.is_wave_active():
+            keys = pygame.key.get_pressed()
+            player.move(keys, dt)
+            player.update_shooting_sprite()
 
-        # Update player shooting animation
-        player.update_shooting_sprite()
+            # Update projectiles
+            for proj in projectiles[:]:
+                proj.update(dt)
+                if proj.position.y < 0:
+                    projectiles.remove(proj)
 
-        # Update projectiles
-        for proj in projectiles[:]:
-            proj.update(dt)
-            if proj.position.y < 0:  # Remove if out of screen
-                projectiles.remove(proj)
+            # Update current wave
+            waves.update(dt)
 
-        # Update current wave
-        waves.update(dt)
+            # Update enemies and check for collisions
+            enemy_manager.update(dt)
+            destroyed_asteroids, destroyed_enemies = detect_collisions(
+                player, asteroids, projectiles, enemy_manager, explosions, []
+            )
+            score += len(destroyed_asteroids) * 1 + len(destroyed_enemies) * 3
 
-        # Check if the wave is complete and start the next wave if necessary
-        if not waves.is_wave_active():
-            current_wave_index += 1
-            if current_wave_index < len(waves.wave_data):
-                waves.start_wave(current_wave_index)
-            else:
-                print("All waves complete!")
-                show_game_win()
-                break
+            # Update ammo pickups and explosions
+            if random.random() < 0.01:
+                ammo_manager.spawn_ammo()
+            if ammo_manager.update(dt, player.shape):
+                player.ammo += 1  # Increase ammo on pickup
 
-        # Update asteroids
-        for ast in asteroids[:]:
-            ast.update(dt)
-            if ast.position.y > SCREEN_HEIGHT:
-                asteroids.remove(ast)
+            for explosion in explosions[:]:
+                explosion.update(dt)
+                if explosion.done:
+                    explosions.remove(explosion)
 
-        # Update enemies
-        # Spawn enemies every few seconds
-        enemy_spawn_timer += dt
-
-
-        # Update and draw enemies
-        enemy_manager.update(dt)
-
-        # Update and draw ammo, checking for player collisions
-        if random.random() < 0.01:  # Adjust probability for ammo spawn rate
-            ammo_manager.spawn_ammo()
-
-        if ammo_manager.update(dt, player.shape):  # Check for collision with player
-            player.ammo += 1  # Increase player ammo count on pickup
-
-        # Collision detection and scoring
-        destroyed_asteroids, destroyed_enemies = detect_collisions(
-            player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox
-        )
-
-        # Update score based on destroyed asteroids and enemies
-        score += len(destroyed_asteroids) * 1  # 1 point per destroyed asteroid
-        score += len(destroyed_enemies) * 3    # 3 points per destroyed enemy
-
-        # Update explosions
-        for explosion in explosions[:]:
-            explosion.update(dt)
-            if explosion.done:
-                explosions.remove(explosion)
-
-        # Update pulse power-up state
-        player.update_power_up(dt)
-
-        # Handle the countdown for double gun mode
-        if player.double_gun_mode:
-            player.double_gun_timer -= dt
-            if player.double_gun_timer <= 0:
-                player.double_gun_mode = False  # Deactivate double gun mode after 3 seconds
-                print('Double Gun Mode Deactivated')
+        # If the wave is complete, set the between-waves state
+        if not waves.is_wave_active() and not waves.is_between_waves():
+            waves.between_waves = True
 
         # Draw everything in the correct order
         screen.fill(BLACK)
         draw_rolling_background(screen, dt)
         draw_health_bar(screen, player)
         player.draw(screen)
+
         for proj in projectiles:
             proj.draw(screen)
         for ast in asteroids:
             ast.draw(screen)
+
+            # Update asteroids
+        for ast in asteroids[:]:
+            ast.update(dt)
+            if ast.position.y > SCREEN_HEIGHT:
+                asteroids.remove(ast)
         enemy_manager.draw(screen)
         ammo_manager.draw(screen)  # Draw ammo drops
         for explosion in explosions:
@@ -310,12 +289,21 @@ def game_loop():
 
         # Display score and ammo count
         score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 70))  # Position below ammo count
+        screen.blit(score_text, (10, 70))
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
         screen.blit(ammo_text, (10, 40))
 
+        # If between waves, display a message to prompt the player to click
+        if waves.is_between_waves():
+            font_large = pygame.font.Font(None, 72)
+            message = "Wave Complete! Click to Start Next Wave! Astroid approaching"
+            text = font_large.render(message, True, (255, 215, 0))
+            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            screen.blit(text, text_rect)
+
         # Update the display
         pygame.display.flip()
+
 
 
 

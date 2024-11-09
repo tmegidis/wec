@@ -93,6 +93,9 @@ def game_loop():
         # Update player shooting animation
         player.update_shooting_sprite()
 
+        # Update player damage sprite (flashing if necessary)
+        player.update_damage_sprite(dt)
+
         # Update projectiles
         for proj in projectiles[:]:
             proj.update(dt)
@@ -140,6 +143,7 @@ def game_loop():
 
         # Update the display
         pygame.display.flip()
+
 
 
 if __name__ == "__main__":

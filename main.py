@@ -108,7 +108,7 @@ def game_loop():
 
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
-        if enemy_spawn_timer > 2:  # Every 2 seconds, spawn a random type
+        if enemy_spawn_timer > 10:  # Every 2 seconds, spawn a random type
             enemy_type = random.choice(["basic", "zigzag", "spread"])
             enemy_x = random.randint(0, SCREEN_WIDTH - 40)
             enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)

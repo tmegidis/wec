@@ -14,7 +14,7 @@ charge = [pygame.image.load("assets/basic_enemy_sprites/Charge_1.png"),
 damage = [pygame.image.load("assets/basic_enemy_sprites/Damage.png")]
 destroyed = [pygame.image.load("assets/basic_enemy_sprites/Destroyed.png")]
 evasion = [pygame.image.load("assets/basic_enemy_sprites/Evasion.png")]
-idle = [pygame.image.load("assets/basic_enemy_sprites/Idle.png")]
+idle = [pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move1.png"), 270) ,pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move2.png"), 270),pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move3.png"), 270),pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move4.png"), 270),pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move5.png"), 270),pygame.transform.rotate(pygame.image.load("assets/basic_enemy_sprites/move_animations/move6.png"), 270)]
 move = [pygame.image.load("assets/basic_enemy_sprites/Move.png")]
 turn = [pygame.image.load("assets/basic_enemy_sprites/Turn_1.png"),
         pygame.image.load("assets/basic_enemy_sprites/Turn_2.png")]

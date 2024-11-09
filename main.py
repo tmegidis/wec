@@ -169,6 +169,15 @@ def game_loop():
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                elif event.key == pygame.K_r:  # Activate shooting speed boost (R key functionality)
+                    player.shooting_speed_factor = 0.5  # Temporarily double the shooting speed
+                    player.no_ammo_reduction_time = player.no_ammo_reduction_duration  # Disable ammo reduction for 3 seconds
+                    print('Shooting Speed Boost Activated')
+                elif event.key == pygame.K_g:  # Activate double gun mode (G key functionality)
+                    if not player.double_gun_mode:  # Activate double gun mode only if it's not already active
+                        player.double_gun_mode = True
+                        player.double_gun_timer = 3  # Set timer for 3 seconds
+                        print('Double Gun Mode Activated')
 
         # Player movement
         keys = pygame.key.get_pressed()
@@ -202,6 +211,23 @@ def game_loop():
                 asteroids.remove(ast)
 
         # Update enemies
+        # Spawn enemies every few seconds
+        enemy_spawn_timer += dt
+
+        if first_spawn:
+            enemy_type = random.choice(["basic", "zigzag", "spread"])
+            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
+            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
+            enemy_spawn_timer = 0
+            first_spawn = False
+
+        if enemy_spawn_timer > 5:  # Every 5 seconds, spawn a random type of enemy
+            enemy_type = random.choice(["basic", "zigzag", "spread"])
+            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
+            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
+            enemy_spawn_timer = 0
+
+        # Update and draw enemies
         enemy_manager.update(dt)
 
         # Update and draw ammo, checking for player collisions
@@ -225,6 +251,16 @@ def game_loop():
             explosion.update(dt)
             if explosion.done:
                 explosions.remove(explosion)
+
+        # Update pulse power-up state
+        player.update_power_up(dt)
+
+        # Handle the countdown for double gun mode
+        if player.double_gun_mode:
+            player.double_gun_timer -= dt
+            if player.double_gun_timer <= 0:
+                player.double_gun_mode = False  # Deactivate double gun mode after 3 seconds
+                print('Double Gun Mode Deactivated')
 
         # Draw everything in the correct order
         screen.fill(BLACK)

@@ -25,6 +25,7 @@ background_y2 = -SCREEN_HEIGHT
 font = pygame.font.Font(None, 36)
 
 
+
 def draw_health_bar(screen, player):
     # Health bar dimensions
     bar_width = 200  # Max width of the health bar

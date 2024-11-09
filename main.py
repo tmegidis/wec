@@ -10,7 +10,6 @@ from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
 
-
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
@@ -41,6 +40,7 @@ intro_slides = [
     slide4
 ]
 
+
 def show_intro():
     slide_index = 0
     slide_duration = 30000  # 30 seconds per slide
@@ -61,9 +61,10 @@ def show_intro():
             begin_button = pygame.font.Font(None, 100).render(begin_button_text, True, (255, 215, 0))  # White color
             button_rect = begin_button.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
             if button_rect.collidepoint(mouse_pos):
-                begin_button = pygame.font.Font(None, 100).render(begin_button_text, True, (255, 215, 255))  # "Gold" color
+                begin_button = pygame.font.Font(None, 100).render(begin_button_text, True,
+                                                                  (255, 215, 255))  # "Gold" color
                 begin_button = pygame.transform.scale(begin_button, (
-                int(button_rect.width * 1.1), int(button_rect.height * 1.1)))  # Slightly larger
+                    int(button_rect.width * 1.1), int(button_rect.height * 1.1)))  # Slightly larger
                 is_hovered = True
             else:
                 # Normal state
@@ -80,13 +81,11 @@ def show_intro():
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # If on the last slide, only start the game if the button is clicked
-                if slide_index == len(intro_slides) - 1:
-                    if button_rect.collidepoint(event.pos):
-                        return  # Start game
-                else:
+                if slide_index == len(intro_slides) - 1 and button_rect.collidepoint(event.pos):
+                    return  # Start game
                     # Advance to the next slide if it's not the last slide
-                    slide_index += 1
-                    start_time = current_time  # Reset timer for next slide
+                slide_index += 1
+                start_time = current_time  # Reset timer for next slide
 
         # Automatically proceed to the next slide after the duration
         if current_time - start_time > slide_duration and slide_index < len(intro_slides) - 1:
@@ -95,6 +94,8 @@ def show_intro():
 
         pygame.display.flip()
         clock.tick(60)
+
+
 def draw_health_bar(screen, player):
     # Health bar dimensions
     bar_width = 200  # Max width of the health bar
@@ -132,7 +133,6 @@ def draw_rolling_background(screen, dt):
     screen.blit(background_img, (0, background_y2))
 
 
-
 def game_loop():
     player = Player()
     asteroid_spawn_timer = 0
@@ -144,7 +144,6 @@ def game_loop():
     first_spawn = True
 
     explosions = []
-
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -190,13 +189,12 @@ def game_loop():
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
 
-
         if first_spawn:
             enemy_type = random.choice(["basic", "zigzag", "spread"])
             enemy_x = random.randint(0, SCREEN_WIDTH - 40)
             enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
             enemy_spawn_timer = 0
-            first_spawn=False
+            first_spawn = False
 
         if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
             enemy_type = random.choice(["basic", "zigzag", "spread"])
@@ -228,14 +226,12 @@ def game_loop():
         for explosion in explosions:
             explosion.draw(screen)
 
-
         # Display ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
         screen.blit(ammo_text, (10, 40))  # Positioned below the health bar
 
         # Update the display
         pygame.display.flip()
-
 
 
 if __name__ == "__main__":

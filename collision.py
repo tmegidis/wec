@@ -1,66 +1,85 @@
-# collision.py
-
 import pygame
-
 from explosion import Explosion
 from settings import PLAYER_SIZE, ASTEROID_SIZE, PROJECTILE_SIZE
 
 
 def detect_collisions(player, asteroids, projectiles, enemies, explosions, enemy_hitbox):
-    # Convert player position to a rectangle for collision detection
     player_rect = pygame.Rect(player.position.x, player.position.y, PLAYER_SIZE, PLAYER_SIZE)
 
+    destroyed_asteroids = []
+    destroyed_enemies = []
+
     # Check for collisions between player and asteroids
-    for asteroid in asteroids[:]:  # Using a copy to allow removal
-        # Player and asteroid collision (rectangle check)
+    for asteroid in asteroids[:]:
         asteroid_rect = pygame.Rect(asteroid.position.x, asteroid.position.y, ASTEROID_SIZE, ASTEROID_SIZE)
         if player_rect.colliderect(asteroid_rect):
-            player.health -= 10  # Decrease player health
-            asteroids.remove(asteroid)  # Remove the asteroid upon collision
-            # Create an explosion at the asteroid's position
-            explosion = Explosion(asteroid.position.x, asteroid.position.y)
-            explosions.append(explosion)
-            print(f"Player hit by asteroid! Health: {player.health}")
+            player.health -= 10
+            if asteroid in asteroids:
+                asteroids.remove(asteroid)
+                explosion = Explosion(asteroid.position.x, asteroid.position.y)
+                explosions.append(explosion)
+                print(f"Player hit by asteroid! Health: {player.health}")
 
-
-    # Check for collisions between player projectiles and asteroids (using circular hitbox)
+    # Check for collisions between player projectiles and asteroids
     for asteroid in asteroids[:]:
-        for projectile in projectiles[:]:  # Using a copy to allow removal
-            # Calculate the distance between the asteroid center and the projectile
+        for projectile in projectiles[:]:
             distance = asteroid.position.get_distance(projectile.position)
-            if distance <= asteroid.hitbox_radius + (PROJECTILE_SIZE / 2):  # Adjust for projectile radius if needed
-                projectiles.remove(projectile)  # Remove projectile on collision
-                if asteroid in asteroids:
-                    asteroids.remove(asteroid)  # Remove asteroid if hit
-                    explosion = Explosion(asteroid.position.x, asteroid.position.y)
-                    explosions.append(explosion)
-                print("Asteroid destroyed!")
-                break  # Exit inner loop to avoid checking removed asteroid
+            if distance <= asteroid.hitbox_radius + (PROJECTILE_SIZE / 2):
+                try:
+                    projectiles.remove(projectile)
+                    if asteroid in asteroids:
+                        asteroids.remove(asteroid)
+                        destroyed_asteroids.append(asteroid)
+                        explosion = Explosion(asteroid.position.x, asteroid.position.y)
+                        explosions.append(explosion)
+                        print("Asteroid destroyed!")
+                except ValueError:
+                    pass  # Ignore if already removed
+                break
 
     # Check for collisions between player and enemy projectiles
-    for enemy in enemies.enemies:
-        for enemy_proj in enemy.projectiles[:]:  # Using a copy to allow removal
-            enemy_proj_rect = pygame.Rect(enemy_proj.position.x, enemy_proj.position.y, enemy_proj.size, enemy_proj.size)
+    for enemy in enemies.enemies[:]:
+        for enemy_proj in enemy.projectiles[:]:
+            enemy_proj_rect = pygame.Rect(enemy_proj.position.x, enemy_proj.position.y, enemy_proj.size,
+                                          enemy_proj.size)
             if player_rect.colliderect(enemy_proj_rect):
-                player.health -= 5  # Decrease player health if hit by enemy projectile
-                enemy.projectiles.remove(enemy_proj)  # Remove the projectile after collision
-                print(f"Player hit by enemy projectile! Health: {player.health}")
+                player.health -= 5
+                try:
+                    enemy.projectiles.remove(enemy_proj)
+                    print(f"Player hit by enemy projectile! Health: {player.health}")
+                except ValueError:
+                    pass
 
     # Check for collisions between player projectiles and enemies
     for enemy in enemies.enemies[:]:
+
         # Define the enemy hitbox rectangle
         enemy_rect = pygame.Rect(enemy.position.x + enemy.size/2 + 57, enemy.position.y + enemy.size + 30, enemy.size, enemy.size)
+
+        enemy_rect = pygame.Rect(enemy.position.x + enemy.size / 2 + 57, enemy.position.y + enemy.size + 80, enemy.size,
+                                 enemy.size)
+
         enemy_hitbox.append(enemy_rect)
 
         for projectile in projectiles[:]:
             projectile_rect = pygame.Rect(projectile.position.x, projectile.position.y, 5, 5)
             if enemy_rect.colliderect(projectile_rect):
-                enemy.health -= 1  # Decrease enemy health
-                projectiles.remove(projectile)  # Remove projectile on collision
-                explosion = Explosion(enemy.position.x, enemy.position.y)
-                explosions.append(explosion)
-                print("Enemy hit by projectile!")
+                enemy.health -= 1
+                try:
+                    projectiles.remove(projectile)
+                    explosion = Explosion(enemy.position.x, enemy.position.y)
+                    explosions.append(explosion)
+                    print("Enemy hit by projectile!")
+                except ValueError:
+                    pass
+
                 if enemy.health <= 0:
-                    enemies.enemies.remove(enemy)  # Remove enemy if health is depleted
-                    print("Enemy destroyed!")
-                break  # Break to avoid checking removed enemy
+                    try:
+                        enemies.enemies.remove(enemy)
+                        destroyed_enemies.append(enemy)
+                        print("Enemy destroyed!")
+                    except ValueError:
+                        pass
+                break
+
+    return destroyed_asteroids, destroyed_enemies

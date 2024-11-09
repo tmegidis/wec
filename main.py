@@ -10,7 +10,7 @@ from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
 from waves import Waves
-
+from ammo import AmmoManager
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_MODE)
@@ -137,15 +137,18 @@ def draw_rolling_background(screen, dt):
 def game_loop():
     player = Player()
     asteroid_spawn_timer = 0
-    enemy_spawn_timer = 0  # Initialize enemy spawn timer
+    enemy_spawn_timer = 0
     projectiles = []
     asteroids = []
-    enemy_manager = EnemyManager()  # Initialize the EnemyManager
-    waves = Waves(enemy_manager, asteroids)  # Initialize the Waves class with enemy manager and asteroids list
+    enemy_manager = EnemyManager()
+    waves = Waves(enemy_manager, asteroids)
+    ammo_manager = AmmoManager()
     first_spawn = True
-
     explosions = []
     enemy_hitbox = []
+
+    # Initialize score
+    score = 0
 
     # Start the first wave
     current_wave_index = 0
@@ -160,11 +163,21 @@ def game_loop():
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and player.ammo > 0:
                     player.shoot(projectiles)
+                    player.ammo -= 1  # Decrease ammo count when shooting
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                elif event.key == pygame.K_r:  # Activate shooting speed boost (R key functionality)
+                    player.shooting_speed_factor = 0.5  # Temporarily double the shooting speed
+                    player.no_ammo_reduction_time = player.no_ammo_reduction_duration  # Disable ammo reduction for 3 seconds
+                    print('Shooting Speed Boost Activated')
+                elif event.key == pygame.K_g:  # Activate double gun mode (G key functionality)
+                    if not player.double_gun_mode:  # Activate double gun mode only if it's not already active
+                        player.double_gun_mode = True
+                        player.double_gun_timer = 3  # Set timer for 3 seconds
+                        print('Double Gun Mode Activated')
 
         # Player movement
         keys = pygame.key.get_pressed()
@@ -172,9 +185,6 @@ def game_loop():
 
         # Update player shooting animation
         player.update_shooting_sprite()
-
-        # Update player damage sprite (flashing if necessary)
-        player.update_damage_sprite(dt)
 
         # Update projectiles
         for proj in projectiles[:]:
@@ -188,65 +198,82 @@ def game_loop():
         # Check if the wave is complete and start the next wave if necessary
         if not waves.is_wave_active():
             current_wave_index += 1
-            if current_wave_index < len(waves.wave_data):  # Check if there are more waves
+            if current_wave_index < len(waves.wave_data):
                 waves.start_wave(current_wave_index)
             else:
-                print("All waves complete!")  # Add any end-of-game logic here
-                # Break out of the loop or reset the game if all waves are done
-                break  # This stops the game after all waves are complete
+                print("All waves complete!")
+                break
 
-
-
-        #update astriods
+        # Update asteroids
         for ast in asteroids[:]:
             ast.update(dt)
-            if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
+            if ast.position.y > SCREEN_HEIGHT:
                 asteroids.remove(ast)
 
+        # Update enemies
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
 
 
-
-        # if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
-        #     enemy_type = random.choice(["basic", "zigzag", "spread"])
-        #     enemy_x = random.randint(0, SCREEN_WIDTH - 40)
-        #     enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
-        #     enemy_spawn_timer = 0
-
         # Update and draw enemies
         enemy_manager.update(dt)
 
-        # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox)
+        # Update and draw ammo, checking for player collisions
+        if random.random() < 0.01:  # Adjust probability for ammo spawn rate
+            ammo_manager.spawn_ammo()
 
+        if ammo_manager.update(dt, player.shape):  # Check for collision with player
+            player.ammo += 1  # Increase player ammo count on pickup
+
+        # Collision detection and scoring
+        destroyed_asteroids, destroyed_enemies = detect_collisions(
+            player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox
+        )
+
+        # Update score based on destroyed asteroids and enemies
+        score += len(destroyed_asteroids) * 1  # 1 point per destroyed asteroid
+        score += len(destroyed_enemies) * 3    # 3 points per destroyed enemy
+
+        # Update explosions
         for explosion in explosions[:]:
             explosion.update(dt)
             if explosion.done:
                 explosions.remove(explosion)
 
+        # Update pulse power-up state
+        player.update_power_up(dt)
+
+        # Handle the countdown for double gun mode
+        if player.double_gun_mode:
+            player.double_gun_timer -= dt
+            if player.double_gun_timer <= 0:
+                player.double_gun_mode = False  # Deactivate double gun mode after 3 seconds
+                print('Double Gun Mode Deactivated')
+
         # Draw everything in the correct order
         screen.fill(BLACK)
-        draw_rolling_background(screen, dt)  # Draw rolling background
-        draw_health_bar(screen, player)  # Draw health bar on top of background
-        player.draw(screen)  # Draw player on top
+        draw_rolling_background(screen, dt)
+        draw_health_bar(screen, player)
+        player.draw(screen)
         for proj in projectiles:
             proj.draw(screen)
         for ast in asteroids:
             ast.draw(screen)
         enemy_manager.draw(screen)
+        ammo_manager.draw(screen)  # Draw ammo drops
         for explosion in explosions:
             explosion.draw(screen)
 
-        # for enemy_rect in enemy_hitbox:
-        #     pygame.draw.rect(screen, (255, 255, 255), enemy_rect, 2)
-
-        # Display ammo count
+        # Display score and ammo count
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 70))  # Position below ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
-        screen.blit(ammo_text, (10, 40))  # Positioned below the health bar
+        screen.blit(ammo_text, (10, 40))
 
         # Update the display
         pygame.display.flip()
+
+
 
 
 if __name__ == "__main__":

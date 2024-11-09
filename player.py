@@ -34,6 +34,10 @@ class Player:
         self.thruster_sprite = pygame.image.load("assets/spaceship_boost.png").convert_alpha()
         self.thruster_sprite = pygame.transform.scale(self.thruster_sprite, (PLAYER_SIZE, PLAYER_SIZE))
 
+        # Load the pulse sprite for the power-up effect
+        self.pulse_sprite = pygame.image.load("assets/pulse.png").convert_alpha()
+        self.pulse_sprite = pygame.transform.scale(self.pulse_sprite, (PLAYER_SIZE * 2, PLAYER_SIZE * 2))  # Larger area for pulse
+
         # Load damage sprites for health flashing, resizing them to PLAYER_SIZE
         self.damage_sprites = [
             pygame.transform.scale(
@@ -55,6 +59,21 @@ class Player:
         self.flash_interval = 0.25  # Flash every 0.25 seconds
         self.last_health_threshold = self.max_health
         self.damage_stage = 0  # Track which damage sprite to show next
+
+        # Power-up related properties
+        self.is_using_power_up = False
+        self.power_up_cooldown = 0
+        self.power_up_duration = 2  # Power-up lasts 2 seconds
+
+        # New properties for shooting speed and no ammo reduction
+        self.shooting_speed_factor = 1  # Normal shooting speed
+        self.no_ammo_reduction_time = 0  # Time when ammo reduction is disabled
+        self.no_ammo_reduction_duration = 3  # Duration in seconds for no ammo reduction
+
+        # New properties for double gun mode
+        self.double_gun_mode = False  # Flag to check if double guns are active
+        self.double_gun_timer = 0  # Timer for double gun mode
+        self.double_gun_duration = 5  # Duration for double guns in seconds
 
     def move(self, keys, dt):
         # Movement logic
@@ -89,16 +108,55 @@ class Player:
         # Draw current sprite
         screen.blit(self.current_sprite, self.shape.topleft)
 
+    def update(self, dt, keys):
+        """Update the player's state."""
+        # Handle the 'R' key press for temporary shooting speed boost and no ammo reduction
+        if keys[pygame.K_r]:
+            if self.no_ammo_reduction_time <= 0:
+                self.shooting_speed_factor = 0.5  # Double the shooting speed (half the delay)
+                self.no_ammo_reduction_time = self.no_ammo_reduction_duration  # Activate no ammo reduction for 3 seconds
+
+        if self.no_ammo_reduction_time > 0:
+            self.no_ammo_reduction_time -= dt  # Countdown timer for no ammo reduction
+        else:
+            self.shooting_speed_factor = 1  # Reset to normal shooting speed after 3 seconds
+
+        # Handle the 'G' key press for double gun mode
+        if keys[pygame.K_g] and not self.double_gun_mode:
+            self.double_gun_mode = True  # Activate double gun mode
+            self.double_gun_timer = 3  # Set the timer for 3 seconds
+
+        # Update the double gun mode timer
+        if self.double_gun_mode:
+            self.double_gun_timer -= dt
+            if self.double_gun_timer <= 0:
+                self.double_gun_mode = False  # Deactivate double gun mode after 3 seconds
+
     def shoot(self, projectiles):
         if self.ammo > 0 and not self.is_shooting:
-            # Calculate the spawn position so the projectile appears in front of the player
-            projectile_x = self.position.x + (self.shape.width // 2) - (PROJECTILE_SIZE // 2)  # Center of the player
+            # Check if double gun mode is active and adjust projectile firing
             projectile_y = self.position.y - PROJECTILE_SIZE  # In front of the player (above)
 
-            # Create and add the projectile to the list
-            new_projectile = Projectile(projectile_x, projectile_y)
-            projectiles.append(new_projectile)
-            self.ammo -= 1
+            # If double gun mode is active, shoot two projectiles
+            if self.double_gun_mode:
+                # Left projectile (slightly to the left of the player's center)
+                left_projectile_x = self.position.x + (self.shape.width // 2) - PROJECTILE_SIZE - 5
+                left_projectile = Projectile(left_projectile_x, projectile_y)
+                projectiles.append(left_projectile)
+
+                # Right projectile (slightly to the right of the player's center)
+                right_projectile_x = self.position.x + (self.shape.width // 2) + 5
+                right_projectile = Projectile(right_projectile_x, projectile_y)
+                projectiles.append(right_projectile)
+
+                self.ammo -= 1  # Decrease ammo by 2 since two projectiles are fired
+            else:
+                # Default behavior: fire a single projectile
+                center_projectile_x = self.position.x + (self.shape.width // 2) - PROJECTILE_SIZE // 2
+                center_projectile = Projectile(center_projectile_x, projectile_y)
+                projectiles.append(center_projectile)
+
+                self.ammo -= 1  # Decrease ammo by 1 since one projectile is fired
 
             # Start the shooting animation
             self.is_shooting = True
@@ -152,3 +210,36 @@ class Player:
                     self.flashing = False  # Stop flashing after 3 flashes
 
                 self.flash_timer = 0  # Reset timer
+
+
+    def update_power_up(self, dt):
+        """Update the power-up state (cooldown and duration)."""
+        if self.is_using_power_up:
+            self.power_up_cooldown -= dt
+            if self.power_up_cooldown <= 0:
+                self.is_using_power_up = False
+                self.current_sprite = self.default_sprite  # Revert back to normal sprite
+
+    def update(self, dt, keys):
+        """Update the player's state."""
+        # Handle the 'R' key press for temporary shooting speed boost and no ammo reduction
+        if keys[pygame.K_r]:
+            if self.no_ammo_reduction_time <= 0:
+                self.shooting_speed_factor = 0.5  # Double the shooting speed (half the delay)
+                self.no_ammo_reduction_time = self.no_ammo_reduction_duration  # Activate no ammo reduction for 3 seconds
+
+        if self.no_ammo_reduction_time > 0:
+            self.no_ammo_reduction_time -= dt  # Countdown timer for no ammo reduction
+        else:
+            self.shooting_speed_factor = 1  # Reset to normal shooting speed after 3 seconds
+
+        # Handle the 'G' key press for double gun mode
+        if keys[pygame.K_g] and not self.double_gun_mode:
+            self.double_gun_mode = True  # Activate double gun mode
+            self.double_gun_timer = self.double_gun_duration  # Set the timer for 5 seconds
+
+        # Update the double gun mode timer
+        if self.double_gun_mode:
+            self.double_gun_timer -= dt
+            if self.double_gun_timer <= 0:
+                self.double_gun_mode = False  # Deactivate double gun mode after 5 seconds

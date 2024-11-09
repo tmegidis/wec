@@ -22,6 +22,12 @@ background_img = pygame.transform.scale(background_img, (SCREEN_WIDTH, SCREEN_HE
 background_y1 = 0
 background_y2 = -SCREEN_HEIGHT
 
+game_over_img = pygame.image.load("assets/slides/lose.png").convert()
+game_over_img = pygame.transform.scale(game_over_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+win_img = pygame.image.load("assets/slides/win.png").convert()
+win_img = pygame.transform.scale(win_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
 # Font for UI elements
 font = pygame.font.Font(None, 36)
 
@@ -134,6 +140,23 @@ def draw_rolling_background(screen, dt):
     screen.blit(background_img, (0, background_y2))
 
 
+def show_game_over():
+    # Display the Game Over screen
+    screen.blit(game_over_img, (0, 0))
+    pygame.display.flip()
+
+    # Wait for player to press a key to exit or restart
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                pygame.quit()
+                sys.exit()  # Exit the game (or add a restart option if desired)
+        clock.tick(500)
+
+
 def game_loop():
     player = Player()
     asteroid_spawn_timer = 0
@@ -156,6 +179,11 @@ def game_loop():
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
+
+        if player.health <= 0:
+            show_game_over()
+            break  # Exit the game loop to end the game after showing Game Over
+
 
         # Handle events
         for event in pygame.event.get():

@@ -9,6 +9,7 @@ from asteroid import Asteroid
 from projectile import Projectile
 from collision import detect_collisions
 from enemy import EnemyManager
+from waves import Waves
 
 # Initialize Pygame
 pygame.init()
@@ -140,11 +141,15 @@ def game_loop():
     projectiles = []
     asteroids = []
     enemy_manager = EnemyManager()  # Initialize the EnemyManager
-
+    waves = Waves(enemy_manager, asteroids)  # Initialize the Waves class with enemy manager and asteroids list
     first_spawn = True
 
     explosions = []
     enemy_hitbox = []
+
+    # Start the first wave
+    current_wave_index = 0
+    waves.start_wave(current_wave_index)
 
     while True:
         dt = clock.tick(60) / 1000  # Delta time calculation
@@ -177,25 +182,31 @@ def game_loop():
             if proj.position.y < 0:  # Remove if out of screen
                 projectiles.remove(proj)
 
-        # # Spawn and update asteroids
-        # asteroid_spawn_timer += dt
-        # if asteroid_spawn_timer > 1:  # Spawn asteroid every second
-        #     asteroids.append(Asteroid())
-        #     asteroid_spawn_timer = 0
-        # for ast in asteroids[:]:
-        #     ast.update(dt)
-        #     if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
-        #         asteroids.remove(ast)
+        # Update current wave
+        waves.update(dt)
+
+        # Check if the wave is complete and start the next wave if necessary
+        if not waves.is_wave_active():
+            current_wave_index += 1
+            if current_wave_index < len(waves.wave_data):  # Check if there are more waves
+                waves.start_wave(current_wave_index)
+            else:
+                print("All waves complete!")  # Add any end-of-game logic here
+                # Break out of the loop or reset the game if all waves are done
+                break  # This stops the game after all waves are complete
+
+
+
+        #update astriods
+        for ast in asteroids[:]:
+            ast.update(dt)
+            if ast.position.y > SCREEN_HEIGHT:  # Remove if out of screen
+                asteroids.remove(ast)
 
         # Spawn enemies every few seconds
         enemy_spawn_timer += dt
 
-        if first_spawn:
-            enemy_type = random.choice(["basic", "zigzag", "spread"])
-            enemy_x = random.randint(0, SCREEN_WIDTH - 40)
-            enemy_manager.spawn_enemy(enemy_x, 0, enemy_type)
-            enemy_spawn_timer = 0
-            first_spawn = False
+
 
         # if enemy_spawn_timer > 5:  # Every 2 seconds, spawn a random type
         #     enemy_type = random.choice(["basic", "zigzag", "spread"])

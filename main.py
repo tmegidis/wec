@@ -142,10 +142,13 @@ def game_loop():
     asteroids = []
     enemy_manager = EnemyManager()
     waves = Waves(enemy_manager, asteroids)
-    ammo_manager = AmmoManager()  # Initialize the AmmoManager
+    ammo_manager = AmmoManager()
     first_spawn = True
     explosions = []
     enemy_hitbox = []
+
+    # Initialize score
+    score = 0
 
     # Start the first wave
     current_wave_index = 0
@@ -231,11 +234,18 @@ def game_loop():
             ammo_manager.spawn_ammo()
 
         if ammo_manager.update(dt, player.shape):  # Check for collision with player
-            player.ammo += 1  # Increase player ammo count on pickup (adjust amount as needed)
+            player.ammo += 1  # Increase player ammo count on pickup
 
-        # Collision detection
-        detect_collisions(player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox)
+        # Collision detection and scoring
+        destroyed_asteroids, destroyed_enemies = detect_collisions(
+            player, asteroids, projectiles, enemy_manager, explosions, enemy_hitbox
+        )
 
+        # Update score based on destroyed asteroids and enemies
+        score += len(destroyed_asteroids) * 1  # 1 point per destroyed asteroid
+        score += len(destroyed_enemies) * 3    # 3 points per destroyed enemy
+
+        # Update explosions
         for explosion in explosions[:]:
             explosion.update(dt)
             if explosion.done:
@@ -265,12 +275,16 @@ def game_loop():
         for explosion in explosions:
             explosion.draw(screen)
 
-        # Display ammo count
+        # Display score and ammo count
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 70))  # Position below ammo count
         ammo_text = font.render(f"Ammo: {player.ammo}", True, (255, 255, 255))
         screen.blit(ammo_text, (10, 40))
 
         # Update the display
         pygame.display.flip()
+
+
 
 
 if __name__ == "__main__":

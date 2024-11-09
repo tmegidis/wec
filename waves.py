@@ -1,8 +1,7 @@
 import random
 from asteroid import Asteroid
 from enemy import EnemyManager
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, clock, SCREEN_MODE
-
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Waves:
     def __init__(self, enemy_manager, asteroids):
@@ -10,23 +9,25 @@ class Waves:
         self.asteroids = asteroids
         self.current_wave = 0
         self.wave_active = False
-        self.wave_start_time = 0
         self.wave_data = [
-            {"enemies": 1, "asteroids": 0, "enemy_type": "basic"},
-            {"enemies": 0, "asteroids": 4, "enemy_type": "zigzag"},
-            {"enemies": 3, "asteroids": 1, "enemy_type": "spread"},
+            {"enemies": 5, "asteroids": 0, "enemy_type": "basic"},
+            {"enemies": 8, "asteroids": 4, "enemy_type": "zigzag"},
+            {"enemies": 10, "asteroids": 5, "enemy_type": "spread"},
             # Add more waves with different configurations as needed
         ]
 
+        # Spawning attributes
+        self.spawn_timer = 0
+        self.spawn_interval = 4  # Time in seconds between enemy spawns
+
     def start_wave(self, wave_index):
-        print("starting wave")
         """Initialize a specific wave."""
         self.current_wave = wave_index
         self.wave_active = True
         self.wave_data[self.current_wave]["enemies_left_to_spawn"] = self.wave_data[self.current_wave]["enemies"]
         self.wave_data[self.current_wave]["asteroids_left_to_spawn"] = self.wave_data[self.current_wave]["asteroids"]
+        self.spawn_timer = 0  # Reset spawn timer for the new wave
 
-        print(self.wave_data)
     def update(self, dt):
         """Update the wave logic, spawning enemies and asteroids."""
         if not self.wave_active or self.current_wave >= len(self.wave_data):
@@ -35,14 +36,17 @@ class Waves:
         # Get current wave data
         wave_info = self.wave_data[self.current_wave]
 
-        # Spawn enemies
-        if wave_info["enemies_left_to_spawn"] > 0:
+        # Update the spawn timer
+        self.spawn_timer += dt
+        if self.spawn_timer >= self.spawn_interval and wave_info["enemies_left_to_spawn"] > 0:
+            # Spawn an enemy if the interval has passed and there are enemies left to spawn
             enemy_x = random.randint(0, SCREEN_WIDTH - 40)
             self.enemy_manager.spawn_enemy(enemy_x, 0, wave_info["enemy_type"])
             wave_info["enemies_left_to_spawn"] -= 1  # Decrease count of remaining spawns
+            self.spawn_timer = 0  # Reset the spawn timer
 
-        # Spawn asteroids
-        if wave_info["asteroids_left_to_spawn"] > 0:
+        # Spawn asteroids all at once at the beginning of the wave
+        while wave_info["asteroids_left_to_spawn"] > 0:
             self.asteroids.append(Asteroid())
             wave_info["asteroids_left_to_spawn"] -= 1
 

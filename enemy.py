@@ -80,7 +80,7 @@ class Enemy:
             self.change_direction()
             self.direction_timer = 0  # Reset the timer
 
-        # Define the maximum y-coordinate (three-quarters down the screen)
+        # Define the maximum y-coordinate
         max_y_position = SCREEN_HEIGHT * 0.3 - self.size  # Adjust for enemy size
 
         # Move in the current direction
@@ -88,7 +88,7 @@ class Enemy:
         new_position = self.position + movement
 
         # Ensure the enemy does not go beyond screen bounds
-        if 0 <= new_position.x <= SCREEN_WIDTH - self.size and 0 <= new_position.y <= max_y_position:
+        if 0 <= new_position.x <= SCREEN_WIDTH - self.size - 10 and 0 <= new_position.y <= max_y_position:
             self.position = new_position
         else:
             # If out of bounds, change direction

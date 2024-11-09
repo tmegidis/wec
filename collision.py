@@ -1,7 +1,7 @@
 # collision.py
 
 import pygame
-from settings import PLAYER_SIZE, ASTEROID_SIZE
+from settings import PLAYER_SIZE, ASTEROID_SIZE, PROJECTILE_SIZE
 
 def detect_collisions(player, asteroids, projectiles, enemies):
     # Convert player position to a rectangle for collision detection
@@ -9,25 +9,24 @@ def detect_collisions(player, asteroids, projectiles, enemies):
 
     # Check for collisions between player and asteroids
     for asteroid in asteroids[:]:  # Using a copy to allow removal
+        # Player and asteroid collision (rectangle check)
         asteroid_rect = pygame.Rect(asteroid.position.x, asteroid.position.y, ASTEROID_SIZE, ASTEROID_SIZE)
-
-        # Player and asteroid collision
         if player_rect.colliderect(asteroid_rect):
             player.health -= 10  # Decrease player health
             asteroids.remove(asteroid)  # Remove the asteroid upon collision
             print(f"Player hit by asteroid! Health: {player.health}")
 
-    # Check for collisions between player projectiles and asteroids
+    # Check for collisions between player projectiles and asteroids (using circular hitbox)
     for asteroid in asteroids[:]:
-        asteroid_rect = pygame.Rect(asteroid.position.x, asteroid.position.y, ASTEROID_SIZE, ASTEROID_SIZE)
         for projectile in projectiles[:]:  # Using a copy to allow removal
-            projectile_rect = pygame.Rect(projectile.position.x, projectile.position.y, 5, 5)  # Small size for projectile
-            if projectile_rect.colliderect(asteroid_rect):
-                projectiles.remove(projectile)  # Remove projectile
+            # Calculate the distance between the asteroid center and the projectile
+            distance = asteroid.position.get_distance(projectile.position)
+            if distance <= asteroid.hitbox_radius + (PROJECTILE_SIZE / 2):  # Adjust for projectile radius if needed
+                projectiles.remove(projectile)  # Remove projectile on collision
                 if asteroid in asteroids:
                     asteroids.remove(asteroid)  # Remove asteroid if hit
                 print("Asteroid destroyed!")
-                break  # Break out to avoid checking removed asteroid
+                break  # Exit inner loop to avoid checking removed asteroid
 
     # Check for collisions between player and enemy projectiles
     for enemy in enemies.enemies:
